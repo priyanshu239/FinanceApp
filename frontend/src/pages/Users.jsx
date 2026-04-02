@@ -14,7 +14,7 @@ const Users = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/users');
+      const res = await api.get('/api/users');
       setUsers(res.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch user list');
@@ -30,7 +30,7 @@ const Users = () => {
   const handleUpdate = async (id, updates) => {
     const loadId = toast.loading('Updating user...');
     try {
-      await api.put(`/users/${id}`, updates);
+      await api.put(`/api/users/${id}`, updates);
       toast.success('User updated successfully', { id: loadId });
       fetchUsers();
     } catch (err) {
@@ -46,7 +46,7 @@ const Users = () => {
     const { id } = deleteConfirm;
     const loadId = toast.loading('Deleting account...');
     try {
-      await api.delete(`/users/${id}`);
+      await api.delete(`/api/users/${id}`);
       toast.success('User account deleted', { id: loadId });
       setDeleteConfirm({ show: false, id: null });
       fetchUsers();

@@ -28,7 +28,7 @@ const Records = () => {
     setLoading(true);
     try {
       const { type, category, date } = filters;
-      let url = `/records?page=${page}&limit=${limit}`;
+      let url = `/api/records?page=${page}&limit=${limit}`;
       if (type) url += `&type=${type}`;
       if (category) url += `&category=${category}`;
       if (date) url += `&date=${date}`;
@@ -53,7 +53,7 @@ const Records = () => {
     e.preventDefault();
     const loadId = toast.loading('Adding record...');
     try {
-      await api.post('/records', newRecord);
+      await api.post('/api/records', newRecord);
       setShowModal(false);
       setNewRecord({ amount: '', type: 'expense', category: '', note: '', date: new Date().toISOString().split('T')[0] });
       toast.success('Record added successfully!', { id: loadId });
@@ -76,11 +76,11 @@ const Records = () => {
     const loadId = toast.loading(isBulk ? `Deleting ${selectedIds.length} records...` : 'Deleting record...');
     try {
       if (isBulk) {
-        await api.post('/records/bulk-delete', { ids: selectedIds });
+        await api.post('/api/records/bulk-delete', { ids: selectedIds });
         toast.success(`${selectedIds.length} records deleted`, { id: loadId });
         setSelectedIds([]);
       } else {
-        await api.delete(`/records/${id}`);
+        await api.delete(`/api/records/${id}`);
         toast.success('Record deleted', { id: loadId });
       }
       setDeleteConfirm({ show: false, id: null, isBulk: false });
