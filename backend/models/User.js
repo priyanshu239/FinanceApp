@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,6 +22,11 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Please add a password'],
       minlength: 6,
       select: false, // Don't return password by default
+      validate(value){
+            if (!validator.isStrongPassword(value)){
+                throw new Error("Enter a Strong Password")
+            }
+        },
     },
     role: {
       type: String,

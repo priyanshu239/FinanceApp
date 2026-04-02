@@ -11,8 +11,13 @@ router.post(
     check('email', 'Please include a valid email').isEmail(),
     check(
       'password',
-      'Please enter a password with 6 or more characters'
-    ).isLength({ min: 6 }),
+      'Password must be at least 8 characters and include uppercase, lowercase, numbers, and symbols'
+    ).isStrongPassword({
+      minLength: 8,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+    }),
   ],
   register
 );
