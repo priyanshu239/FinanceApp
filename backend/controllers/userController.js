@@ -5,7 +5,19 @@ const User = require('../models/User');
 // @access  Private (Admin only)
 exports.getUsers = async (req, res, next) => {
   try {
-    const users = await User.find({}).select('-password');
+    const { search } = req.query;
+    let query = {};
+
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+
+    const users = await User.find(query).select('-password');
     res.status(200).json({
       success: true,
       count: users.length,

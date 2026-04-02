@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
-import { Users as UsersIcon, Shield, Trash2, UserCheck, UserMinus, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Users as UsersIcon, Shield, Trash2, UserCheck, UserMinus, ChevronLeft, ChevronRight, AlertTriangle, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Users = () => {
@@ -9,12 +9,13 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null });
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/api/users');
+      const res = await api.get(`/api/users${search ? `?search=${search}` : ''}`);
       setUsers(res.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch user list');
@@ -24,8 +25,12 @@ const Users = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      fetchUsers();
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [search]);
 
   const handleUpdate = async (id, updates) => {
     const loadId = toast.loading('Updating user...');
@@ -71,10 +76,30 @@ const Users = () => {
           </h1>
           <p className="text-gray-400 mt-1">Control system access, roles, and account statuses.</p>
         </div>
-        <div className="hidden md:block">
-          <span className="bg-primary-900/40 text-primary-400 px-4 py-2 rounded-xl border border-primary-500/20 text-sm font-bold">
-            Total Users: {users.length}
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-primary-400 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search by name or email..."
+              className="bg-gray-900/50 border border-gray-700 rounded-xl py-2.5 pl-11 pr-10 w-64 outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div className="hidden md:block">
+            <span className="bg-primary-900/40 text-primary-400 px-4 py-2 rounded-xl border border-primary-500/20 text-sm font-bold">
+              Found: {users.length}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -149,6 +174,25 @@ const Users = () => {
             </tbody>
           </table>
         </div>
+        {!loading && users.length === 0 && (
+          <div className="p-20 text-center animate-in fade-in zoom-in duration-300">
+            <div className="w-24 h-24 bg-gray-900 rounded-[32px] flex items-center justify-center mx-auto mb-6 border-2 border-gray-700/50 shadow-inner">
+              <Search className="w-12 h-12 text-gray-700" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-200 mb-2">No users found</h3>
+            <p className="text-gray-500 max-w-sm mx-auto mb-8">
+              We couldn't find any results matching <span className="text-primary-400 font-mono italic">"{search}"</span>. Try adjusting your keywords.
+            </p>
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                className="px-6 py-2.5 bg-gray-900 hover:bg-gray-700 text-primary-400 font-bold rounded-xl border border-gray-700 transition-all active:scale-95"
+              >
+                Clear Search & View All
+              </button>
+            )}
+          </div>
+        )}
       </div>
       {/* User Deletion Modal */}
       {deleteConfirm.show && (
