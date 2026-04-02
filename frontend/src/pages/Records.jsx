@@ -11,7 +11,7 @@ const Records = () => {
   const [error, setError] = useState('');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [limit] = useState(5);
+  const [limit] = useState(10);
   const [filters, setFilters] = useState({ type: '', category: '', date: '' });
   const [showModal, setShowModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, isBulk: false });

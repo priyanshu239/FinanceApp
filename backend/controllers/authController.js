@@ -3,9 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 
-// @desc    Register user
-// @route   POST /api/auth/register
-// @access  Public
+// register user
+// POST /api/auth/register
 exports.register = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -15,7 +14,7 @@ exports.register = async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
   try {
-    // If user is trying to register as admin, check if an admin already exists
+    // if user is trying to register as an admin check if an admin already exists
     if (role === 'admin') {
       const adminExists = await User.findOne({ role: 'admin' });
       if (adminExists) {
@@ -26,7 +25,7 @@ exports.register = async (req, res, next) => {
       }
     }
 
-    // Create user
+    // create user
     const user = await User.create({
       name,
       email,
@@ -40,9 +39,8 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
+//  Login user
+//  POST /api/auth/login
 exports.login = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -51,7 +49,6 @@ exports.login = async (req, res, next) => {
 
   const { email, password } = req.body;
 
-  // Validate email & password
   if (!email || !password) {
     return res.status(400).json({
       success: false,
@@ -60,7 +57,6 @@ exports.login = async (req, res, next) => {
   }
 
   try {
-    // Check for user
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
@@ -69,8 +65,6 @@ exports.login = async (req, res, next) => {
         message: 'Invalid credentials',
       });
     }
-
-    // Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
@@ -86,9 +80,8 @@ exports.login = async (req, res, next) => {
   }
 };
 
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
-// @access  Private
+//  Get current logged in user
+//  GET /api/auth/me
 exports.getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -106,9 +99,9 @@ exports.getMe = async (req, res, next) => {
   }
 };
 
-// @desc    Update user profile (name & password only, email cannot be changed)
-// @route   PUT /api/auth/profile
-// @access  Private
+// update user profile -- only name and password
+// PUT /api/auth/profile
+
 exports.updateProfile = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -118,7 +111,7 @@ exports.updateProfile = async (req, res, next) => {
   try {
     const { name, currentPassword, newPassword, email } = req.body;
 
-    // Explicitly reject email changes
+    // reject email changes
     if (email !== undefined) {
       return res.status(400).json({
         success: false,
@@ -135,12 +128,12 @@ exports.updateProfile = async (req, res, next) => {
       });
     }
 
-    // Update name if provided
+    // update name if provided
     if (name) {
       user.name = name;
     }
 
-    // Update password if provided
+    // update password if provided
     if (newPassword) {
       if (!currentPassword) {
         return res.status(400).json({
@@ -162,16 +155,14 @@ exports.updateProfile = async (req, res, next) => {
 
     await user.save();
 
-    // Return new token so the session stays valid
     sendTokenResponse(user, 200, res);
   } catch (err) {
     next(err);
   }
 };
 
-// Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
+
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });

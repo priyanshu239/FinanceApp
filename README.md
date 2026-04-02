@@ -20,8 +20,19 @@ A professional-grade, full-stack financial data processing and access control sy
 - **React Hot Toast**: Instant, color-coded notifications with loading states for every action (Add, Delete, Login).
 - **Glassmorphism Modals**: Custom-designed confirmation popups for destructive actions (Delete Record/User), replacing invasive browser alerts.
 - **Advanced Filtering**: Targeted search by **Category (Fuzzy Search)**, **Type**, and **Specific Date**.
+- **Self-Service Profiling**: Users can securely update their own **Display Name** and **Password** (requires current password verification for safety).
+- **Self-Service Profiling**: Users can securely update their own **Display Name** and **Password** (requires current password verification for safety).
 
 ---
+
+## ⚙️ Assumptions & Tradeoffs
+
+To ensure the system remained focus on core functionality and security, the following design decisions were made:
+
+- **Single Admin Policy**: For this version, the system enforces a "single administrator" rule to simplify high-level permissions and prevent accidental lockout of the entire system.
+- **Role-Based Visibility**: Unlike typical SaaS platforms where users see only 'their' data, this is designed for a **Finance Team** environment. Analysts can see all records to perform cross-functional trend analysis, while Viewers only see aggregated dashboard data.
+- **Hard Deletes vs Soft Deletes**: We chose **Hard Deletes** for this evaluation to maintain database cleanliness. In a production auditing system, we would transition to soft-deletes (isDeleted: Boolean) to preserve historical logs.
+- **Stateful Validation**: Password strength is enforced both in the API layer (express-validator) and the Model layer (Mongoose 9 hooks) to ensure data integrity even if the API is bypassed.
 
 ## 🛠️ Tech Stack
 
@@ -85,6 +96,32 @@ node -e "/* recovery logic */" # See documentation or run create_admin.js
 **Default Recovery Credentials:** `admin@zorvyn.com` / `password123`
 
 ---
+
+## 📡 API Reference
+
+### 🔐 Authentication
+| Endpoint | Method | Access | Description |
+|---|---|---|---|
+| `/api/auth/register` | POST | Public | Create a new user account |
+| `/api/auth/login` | POST | Public | Authenticate and receive JWT |
+| `/api/auth/me` | GET | Private | Get current user's profile |
+| `/api/auth/profile` | PUT | Private | Update name or password |
+
+### 📊 Dashboard & Records
+| Endpoint | Method | Access | Description |
+|---|---|---|---|
+| `/api/dashboard/summary` | GET | All Roles | Aggregated financial analytics |
+| `/api/records` | GET | Analyst/Admin | List/Filter all records |
+| `/api/records` | POST | Admin | Create a new financial record |
+| `/api/records/:id` | PUT | Admin | Update an existing record |
+| `/api/records/:id` | DELETE | Admin | Remove a record permanently |
+
+### 👥 User Management
+| Endpoint | Method | Access | Description |
+|---|---|---|---|
+| `/api/users` | GET | Admin | List all registered users |
+| `/api/users/:id` | PUT | Admin | Update user role or status |
+| `/api/users/:id` | DELETE | Admin | Remote a user account |
 
 ## 📂 Project Architecture
 ```text

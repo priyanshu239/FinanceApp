@@ -1,8 +1,8 @@
 const Record = require('../models/Record');
 
-// @desc    Get dashboard summary
-// @route   GET /api/dashboard/summary
-// @access  Private (Viewer, Analyst, Admin)
+//  get dashboard summary
+//  GET /api/dashboard/summary
+//  private (Viewer, Analyst, Admin)
 exports.getSummary = async (req, res, next) => {
   try {
     const aggregate = await Record.aggregate([
@@ -104,13 +104,30 @@ exports.getSummary = async (req, res, next) => {
 
     const result = aggregate[0];
 
-    // Get recent activities (last 5 records)
+    // Pagination for recent activities
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const startIndex = (page - 1) * limit;
+
+    const totalRecords = await Record.countDocuments();
+
+    // get recent activities with pagination
     const recentActivities = await Record.find()
       .sort({ createdAt: -1 })
-      .limit(5)
+      .skip(startIndex)
+      .limit(limit)
       .populate('createdBy', 'name');
 
-    // Format totals
+    // activity pagination metadata
+    const activityPagination = {};
+    if (startIndex + limit < totalRecords) {
+      activityPagination.next = { page: page + 1, limit };
+    }
+    if (startIndex > 0) {
+      activityPagination.prev = { page: page - 1, limit };
+    }
+
+    // format totals
     const totals = result.totals[0] || {
       totalIncome: 0,
       totalExpense: 0,
@@ -124,7 +141,11 @@ exports.getSummary = async (req, res, next) => {
         categoryTotals: result.categoryTotals,
         monthlyTrends: result.monthlyTrends,
         weeklyTrends: result.weeklyTrends,
-        recentActivities,
+        recentActivities: {
+          data: recentActivities,
+          total: totalRecords,
+          pagination: activityPagination,
+        },
       },
     });
   } catch (err) {

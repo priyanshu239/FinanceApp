@@ -167,7 +167,7 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {summary.recentActivities?.map((activity) => (
+                {summary.recentActivities.data?.map((activity) => (
                   <tr key={activity._id} className="hover:bg-gray-700/30 transition-colors">
                     <td className="px-6 py-4 text-sm text-gray-300">
                       {new Date(activity.date).toLocaleDateString()}
@@ -193,7 +193,7 @@ const Dashboard = () => {
               </tbody>
             </table>
           </div>
-          {summary.recentActivities?.length === 0 && (
+          {summary.recentActivities.data?.length === 0 && (
             <div className="p-12 text-center text-gray-500 italic">No recent activity detected.</div>
           )}
         </div>
