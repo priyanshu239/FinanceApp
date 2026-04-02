@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Records from './pages/Records';
 import Users from './pages/Users';
+import Profile from './pages/Profile';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
@@ -66,6 +67,11 @@ function App() {
             <Route path="/users" element={
               <ProtectedRoute roles={['admin']}>
                 <Users />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" />} />

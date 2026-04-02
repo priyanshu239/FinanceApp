@@ -60,8 +60,23 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const res = await api.put('/api/auth/profile', profileData);
+      const { token, user: userData } = res.data;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+
+      return userData;
+    } catch (err) {
+      throw err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Profile update failed';
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );

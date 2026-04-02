@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, List, LogOut, Wallet, Users, Menu, X } from 'lucide-react';
+import { LayoutDashboard, List, LogOut, Wallet, Users, Menu, X, UserCircle } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -40,14 +40,22 @@ const Navbar = () => {
         </Link>
       )}
       <div className={`flex items-center gap-3 ${mobile ? 'border-t border-gray-700 mt-4 pt-6' : 'border-l border-gray-700 pl-6'}`}>
-        <div className="flex flex-col">
-          <span className="text-gray-100 font-medium text-sm leading-tight">
-            {user.name}
-          </span>
-          <span className="text-gray-500 text-xs uppercase tracking-wider font-bold">
-            {user.role}
-          </span>
-        </div>
+        <Link
+          to="/profile"
+          onClick={() => setIsOpen(false)}
+          className="flex items-center gap-2 hover:text-primary-400 transition-colors group"
+          title="Edit Profile"
+        >
+          <UserCircle className="w-5 h-5 text-gray-400 group-hover:text-primary-400 transition-colors" />
+          <div className="flex flex-col">
+            <span className="text-gray-100 font-medium text-sm leading-tight group-hover:text-primary-400 transition-colors">
+              {user.name}
+            </span>
+            <span className="text-gray-500 text-xs uppercase tracking-wider font-bold">
+              {user.role}
+            </span>
+          </div>
+        </Link>
         <button
           onClick={() => {
             setIsOpen(false);

@@ -22,11 +22,6 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Please add a password'],
       minlength: 6,
       select: false, // Don't return password by default
-      validate(value){
-            if (!validator.isStrongPassword(value)){
-                throw new Error("Enter a Strong Password")
-            }
-        },
     },
     role: {
       type: String,
@@ -44,10 +39,15 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Encrypt password using bcrypt
-userSchema.pre('save', async function (next) {
+// Validate and encrypt password using bcrypt (only when password is modified)
+userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    next();
+    return;
+  }
+
+  // Validate password strength only on new/changed passwords (before hashing)
+  if (!validator.isStrongPassword(this.password)) {
+    throw new Error('Password must be at least 8 characters and include uppercase, lowercase, numbers, and symbols');
   }
 
   const salt = await bcrypt.genSalt(10);
