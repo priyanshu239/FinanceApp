@@ -1,5 +1,6 @@
 const Record = require('../models/Record');
 const { validationResult } = require('express-validator');
+const { Parser } = require('json2csv');
 
 // @desc    Get all records
 // @route   GET /api/records
@@ -220,6 +221,54 @@ exports.deleteRecords = async (req, res, next) => {
       success: true,
       message: `${ids.length} records deleted successfully`,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+// @desc    Export records to CSV
+// @route   GET /api/records/export
+// @access  Private (Analyst, Admin)
+exports.exportRecords = async (req, res, next) => {
+  try {
+    // Exact same filtering logic as getRecords
+    const reqQuery = { ...req.query };
+    const removeFields = ['select', 'sort', 'page', 'limit'];
+    removeFields.forEach((param) => delete reqQuery[param]);
+
+    if (reqQuery.category) {
+      reqQuery.category = { $regex: reqQuery.category, $options: 'i' };
+    }
+
+    let queryStr = JSON.stringify(reqQuery);
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`);
+
+    // Fetch records (Wait, we don't paginate for export, usually we want ALL filtered data)
+    const records = await Record.find(JSON.parse(queryStr))
+      .sort('-createdAt')
+      .populate('createdBy', 'name email');
+
+    if (records.length === 0) {
+      return res.status(404).json({ success: false, message: 'No records found to export' });
+    }
+
+    // Map data for CSV
+    const fields = [
+      { label: 'Date', value: (row) => new Date(row.date).toLocaleDateString() },
+      { label: 'Amount', value: 'amount' },
+      { label: 'Type', value: 'type' },
+      { label: 'Category', value: 'category' },
+      { label: 'Note', value: 'note' },
+      { label: 'Created By', value: 'createdBy.name' }
+    ];
+
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(records);
+
+    // Set headers for download
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`zorvyn-finance-export-${new Date().toISOString().split('T')[0]}.csv`);
+    
+    return res.send(csv);
   } catch (err) {
     next(err);
   }

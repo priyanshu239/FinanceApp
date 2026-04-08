@@ -6,6 +6,7 @@ const {
   updateRecord,
   deleteRecord,
   deleteRecords,
+  exportRecords,
 } = require('../controllers/recordController');
 
 const { protect } = require('../middleware/auth');
@@ -16,6 +17,9 @@ const router = express.Router();
 
 // Apply protection to all routes
 router.use(protect);
+
+// Export records to CSV (Analyst or Admin)
+router.get('/export', authorize('analyst', 'admin'), exportRecords);
 
 // Get all records (Analyst or Admin)
 router.get('/', authorize('analyst', 'admin'), getRecords);

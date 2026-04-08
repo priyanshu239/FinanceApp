@@ -1,29 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   PAPER THEME — inspired by rumik.ai
+   Core Design Tokens
+   ============================================ */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --paper-bg:     #edeadf;
+  --paper-card:   #f5f2ea;
+  --paper-border: #0f0e0b;
+  --paper-ink:    #0f0e0b;
+  --paper-muted:  #7a7368;
+  --paper-faint:  #cdc3ab;
+  --accent-green: #2d6a4f;
+  --accent-red:   #b5291c;
+  --accent-amber: #926015;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* ============================================
+   BASE RESET & TYPOGRAPHY
+   ============================================ */
+* {
+  box-sizing: border-box;
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html {
+  font-size: 16px;
 }
 
 body {
   margin: 0;
-  display: flex;
-  min-width: 320px;
   min-height: 100vh;
+  min-width: 320px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--paper-bg);
+  color: var(--paper-ink);
 }
 
 #root {
   width: 100%;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--paper-bg); }
+::-webkit-scrollbar-thumb { background: var(--paper-faint); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--paper-muted); }
+
+/* ============================================
+   GLOBAL INPUT STYLES
+   ============================================ */
+input, select, textarea {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--paper-ink);
+  background: var(--paper-card);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--paper-ink);
+  outline-offset: 0px;
+}
+
+/* ============================================
+   UTILITY CLASSES — Paper Design System
+   ============================================ */
+@layer components {
+
+  /* ---- Cards ---- */
+  .card {
+    @apply bg-[#f5f2ea] border border-[#0f0e0b] rounded-2xl;
+    box-shadow: 3px 3px 0px 0px rgba(15,14,11,0.15);
+  }
+
+  .card-sm {
+    @apply bg-[#f5f2ea] border border-[#0f0e0b] rounded-xl;
+    box-shadow: 2px 2px 0px 0px rgba(15,14,11,0.12);
+  }
+
+  /* ---- Buttons ---- */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 font-bold px-6 py-3 rounded-full;
+    @apply bg-[#0f0e0b] text-[#f5f2ea] border border-[#0f0e0b];
+    @apply transition-all duration-150 active:scale-[0.97];
+    box-shadow: 2px 2px 0px 0px rgba(15,14,11,0.3);
+  }
+  .btn-primary:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px 0px rgba(15,14,11,0.3);
+  }
+  .btn-primary:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0px 0px 0px 0px rgba(15,14,11,0.3);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 font-bold px-6 py-3 rounded-full;
+    @apply bg-transparent text-[#0f0e0b] border border-[#0f0e0b];
+    @apply transition-all duration-150;
+    box-shadow: 2px 2px 0px 0px rgba(15,14,11,0.15);
+  }
+  .btn-secondary:hover {
+    @apply bg-[#0f0e0b] text-[#f5f2ea];
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px 0px rgba(15,14,11,0.2);
+  }
+  .btn-secondary:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0px 0px 0px 0px rgba(15,14,11,0.2);
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 font-bold px-6 py-3 rounded-full;
+    @apply bg-[#b5291c] text-white border border-[#b5291c];
+    @apply transition-all duration-150;
+    box-shadow: 2px 2px 0px 0px rgba(181,41,28,0.3);
+  }
+  .btn-danger:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px 0px rgba(181,41,28,0.3);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 font-medium px-4 py-2.5 rounded-full;
+    @apply bg-transparent text-[#7a7368] border border-transparent;
+    @apply transition-all duration-150 hover:border-[#0f0e0b]/20 hover:text-[#0f0e0b] hover:bg-[#f5f2ea];
+  }
+
+  /* ---- Inputs ---- */
+  .input-paper {
+    @apply w-full bg-[#f5f2ea] border border-[#0f0e0b]/30 rounded-xl py-3 px-4;
+    @apply text-[#0f0e0b] placeholder-[#b0a89c];
+    @apply transition-all duration-150;
+    box-shadow: inset 0 1px 3px rgba(15,14,11,0.06);
+  }
+  .input-paper:focus {
+    outline: 2px solid #0f0e0b;
+    outline-offset: -1px;
+    border-color: #0f0e0b;
+  }
+
+  /* ---- Badge / Tag ---- */
+  .badge-income {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest;
+    @apply bg-[#2d6a4f]/10 text-[#2d6a4f] border border-[#2d6a4f]/30;
+  }
+  .badge-expense {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest;
+    @apply bg-[#b5291c]/10 text-[#b5291c] border border-[#b5291c]/30;
+  }
+
+  /* ---- Section labels ---- */
+  .label-xs {
+    @apply text-xs font-bold uppercase tracking-widest text-[#7a7368];
+  }
+
+  /* ---- Table ---- */
+  .table-paper th {
+    @apply px-6 py-4 text-xs font-bold uppercase tracking-widest text-[#7a7368] bg-[#e8e3d5] border-b border-[#0f0e0b]/10;
+  }
+  .table-paper td {
+    @apply px-6 py-4 text-sm text-[#3a3630] border-b border-[#0f0e0b]/5;
+  }
+  .table-paper tr:last-child td {
+    @apply border-b-0;
+  }
+  .table-paper tr:hover td {
+    background: rgba(205, 195, 171, 0.20);
+  }
+
+  /* ---- Stat Card ---- */
+  .stat-card {
+    @apply bg-[#f5f2ea] border border-[#0f0e0b] rounded-2xl p-6;
+    box-shadow: 3px 3px 0px 0px rgba(15,14,11,0.15);
+  }
+}
+
+/* ============================================
+   RECHARTS & CHART THEMING
+   ============================================ */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(15,14,11,0.08) !important;
+}
+.recharts-text { fill: #7a7368 !important; }
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #f5f2ea !important;
+  border: 1px solid #0f0e0b !important;
+  border-radius: 12px !important;
+  color: #0f0e0b !important;
+  box-shadow: 3px 3px 0px rgba(15,14,11,0.15) !important;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-up   { animation: fadeInUp 0.3s ease-out forwards; }
+.animate-scale-in  { animation: scaleIn  0.2s ease-out forwards; }
+
+/* ============================================
+   TOAST OVERRIDE
+   ============================================ */
+.go2072408551 {
+  background: #f5f2ea !important;
+  color: #0f0e0b !important;
+  border: 1px solid #0f0e0b !important;
+  border-radius: 12px !important;
+  box-shadow: 3px 3px 0px rgba(15,14,11,0.15) !important;
+  font-weight: 600 !important;
 }

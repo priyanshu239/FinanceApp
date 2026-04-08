@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
-import { Users as UsersIcon, Shield, Trash2, UserCheck, UserMinus, ChevronLeft, ChevronRight, AlertTriangle, Search, X } from 'lucide-react';
+import { Users as UsersIcon, Trash2, UserCheck, UserMinus, AlertTriangle, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Users = () => {
@@ -18,33 +18,26 @@ const Users = () => {
       const res = await api.get(`/api/users${search ? `?search=${search}` : ''}`);
       setUsers(res.data.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch user list');
+      setError(err.response?.data?.message || 'Failed to fetch users');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchUsers();
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
+    const timer = setTimeout(() => fetchUsers(), 300);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const handleUpdate = async (id, updates) => {
     const loadId = toast.loading('Updating user...');
     try {
       await api.put(`/api/users/${id}`, updates);
-      toast.success('User updated successfully', { id: loadId });
+      toast.success('User updated', { id: loadId });
       fetchUsers();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update user', { id: loadId });
+      toast.error(err.response?.data?.message || 'Failed to update', { id: loadId });
     }
-  };
-
-  const handleDeleteClick = (id) => {
-    setDeleteConfirm({ show: true, id });
   };
 
   const confirmDelete = async () => {
@@ -52,120 +45,116 @@ const Users = () => {
     const loadId = toast.loading('Deleting account...');
     try {
       await api.delete(`/api/users/${id}`);
-      toast.success('User account deleted', { id: loadId });
+      toast.success('User deleted', { id: loadId });
       setDeleteConfirm({ show: false, id: null });
       fetchUsers();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete user', { id: loadId });
+      toast.error(err.response?.data?.message || 'Failed to delete', { id: loadId });
     }
   };
 
-  const handleDelete = async (id) => {
-    // Handled by handleDeleteClick and confirmDelete
+  const roleColors = {
+    admin: 'bg-ink text-paper-100 border-ink',
+    analyst: 'bg-paper-300 text-ink border-ink/30',
+    viewer: 'bg-paper-200 text-ink-muted border-ink/20',
   };
 
-  if (loading && users.length === 0) return <div className="p-8 text-center text-gray-400">Loading Users...</div>;
-
   return (
-    <div className="space-y-8 animate-in slide-in-from-right duration-500">
-      <div className="flex items-center justify-between p-6 bg-gray-800 rounded-2xl border border-gray-700 shadow-xl">
+    <div className="space-y-4 animate-fade-up">
+      {/* Header */}
+      <div className="card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <UsersIcon className="w-8 h-8 text-primary-400" />
-            User Management
-          </h1>
-          <p className="text-gray-400 mt-1">Control system access, roles, and account statuses.</p>
+          <div className="flex items-center gap-2 mb-1">
+            <UsersIcon className="w-5 h-5 text-ink-muted" />
+            <h1 className="text-2xl font-black text-ink lowercase">user management</h1>
+          </div>
+          <p className="text-ink-muted text-sm">control system access, roles, and account statuses</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-primary-400 transition-colors" />
-            <input 
-              type="text" 
+        <div className="flex items-center gap-3">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
+            <input
+              type="text"
               placeholder="Search by name or email..."
-              className="bg-gray-900/50 border border-gray-700 rounded-xl py-2.5 pl-11 pr-10 w-64 outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="input-paper pl-10 pr-9 w-64 text-sm py-2.5"
             />
             {search && (
-              <button 
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
-              >
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink">
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <div className="hidden md:block">
-            <span className="bg-primary-900/40 text-primary-400 px-4 py-2 rounded-xl border border-primary-500/20 text-sm font-bold">
-              Found: {users.length}
-            </span>
-          </div>
+          <span className="label-xs px-3 py-2 bg-paper-300 border border-ink/10 rounded-pill whitespace-nowrap">
+            {users.length} Found
+          </span>
         </div>
       </div>
 
-      {error && <div className="p-4 bg-red-900/20 border border-red-500 text-red-500 rounded-xl">{error}</div>}
+      {error && <div className="card p-4 text-accent-red font-medium text-sm">{error}</div>}
 
-      <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
+      {/* Table */}
+      <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-900/50 text-gray-400 text-xs uppercase tracking-wider">
+          <table className="w-full table-paper">
+            <thead>
               <tr>
-                <th className="px-6 py-5 font-bold">User Details</th>
-                <th className="px-6 py-5 font-bold">Status</th>
-                <th className="px-6 py-5 font-bold">Role</th>
-                <th className="px-6 py-5 font-bold text-right">Administrative Actions</th>
+                <th className="text-left">User</th>
+                <th className="text-left">Role</th>
+                <th className="text-left">Status</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
-              {users.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-700/20 transition-all group">
-                  <td className="px-6 py-5">
+            <tbody>
+              {users.map((u) => (
+                <tr key={u._id}>
+                  <td>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-900/30 flex items-center justify-center text-primary-400 font-bold border border-primary-500/20">
-                        {user.name[0]?.toUpperCase()}
+                      <div className="w-9 h-9 rounded-xl bg-ink flex items-center justify-center text-paper-100 text-sm font-black flex-shrink-0">
+                        {u.name?.[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-bold text-gray-100">{user.name}</div>
-                        <div className="text-xs text-gray-500">{user.email}</div>
+                        <div className="font-bold text-ink text-sm">{u.name}</div>
+                        <div className="text-xs text-ink-muted">{u.email}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
-                    <button 
-                      onClick={() => handleUpdate(user._id, { status: user.status === 'active' ? 'inactive' : 'active' })}
-                      className={`flex items-center gap-2 group/status px-3 py-1.5 rounded-lg border transition-all ${
-                        user.status === 'active' 
-                        ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' 
-                        : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
-                      }`}
-                    >
-                      {user.status === 'active' ? (
-                        <><UserCheck className="w-4 h-4" /> Active</>
-                      ) : (
-                        <><UserMinus className="w-4 h-4" /> Inactive</>
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-6 py-5">
-                    <select 
-                      className="bg-gray-900 border border-gray-700 rounded-lg py-1.5 px-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
-                      value={user.role}
-                      onChange={(e) => handleUpdate(user._id, { role: e.target.value })}
-                      disabled={user._id === currentAdmin.id}
+                  <td>
+                    <select
+                      className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-pill border cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-ink/20 ${roleColors[u.role] || roleColors.viewer}`}
+                      value={u.role}
+                      onChange={(e) => handleUpdate(u._id, { role: e.target.value })}
+                      disabled={u._id === currentAdmin.id}
                     >
                       <option value="viewer">Viewer</option>
                       <option value="analyst">Analyst</option>
-                      {user.role === 'admin' && <option value="admin">Administrator</option>}
+                      {u.role === 'admin' && <option value="admin">Admin</option>}
                     </select>
                   </td>
-                  <td className="px-6 py-5 text-right">
-                    {user._id !== currentAdmin.id && (
-                      <button 
-                        onClick={() => handleDeleteClick(user._id)}
-                        className="p-2.5 text-gray-500 hover:text-rose-400 hover:bg-rose-900/20 rounded-xl transition-all"
-                        title="Delete User"
+                  <td>
+                    <button
+                      onClick={() => handleUpdate(u._id, { status: u.status === 'active' ? 'inactive' : 'active' })}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-pill text-xs font-bold border transition-all
+                        ${u.status === 'active'
+                          ? 'bg-[#2d6a4f]/10 text-[#2d6a4f] border-[#2d6a4f]/30 hover:bg-[#2d6a4f]/20'
+                          : 'bg-[#926015]/10 text-[#926015] border-[#926015]/30 hover:bg-[#926015]/20'
+                        }`}
+                    >
+                      {u.status === 'active'
+                        ? <><UserCheck className="w-3.5 h-3.5" /> Active</>
+                        : <><UserMinus className="w-3.5 h-3.5" /> Inactive</>
+                      }
+                    </button>
+                  </td>
+                  <td className="text-right">
+                    {u._id !== currentAdmin.id && (
+                      <button
+                        onClick={() => setDeleteConfirm({ show: true, id: u._id })}
+                        className="p-2 text-ink-muted hover:text-accent-red hover:bg-[#b5291c]/10 rounded-lg transition-all"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </td>
@@ -174,55 +163,37 @@ const Users = () => {
             </tbody>
           </table>
         </div>
+
         {!loading && users.length === 0 && (
-          <div className="p-20 text-center animate-in fade-in zoom-in duration-300">
-            <div className="w-24 h-24 bg-gray-900 rounded-[32px] flex items-center justify-center mx-auto mb-6 border-2 border-gray-700/50 shadow-inner">
-              <Search className="w-12 h-12 text-gray-700" />
+          <div className="p-16 text-center animate-fade-up">
+            <div className="w-16 h-16 bg-paper-300 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-ink/10">
+              <Search className="w-8 h-8 text-ink-faint" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-200 mb-2">No users found</h3>
-            <p className="text-gray-500 max-w-sm mx-auto mb-8">
-              We couldn't find any results matching <span className="text-primary-400 font-mono italic">"{search}"</span>. Try adjusting your keywords.
+            <h3 className="text-lg font-black text-ink mb-2">No users found</h3>
+            <p className="text-ink-muted text-sm mb-6">
+              {search ? `No results matching "${search}"` : 'No users registered yet.'}
             </p>
             {search && (
-              <button 
-                onClick={() => setSearch('')}
-                className="px-6 py-2.5 bg-gray-900 hover:bg-gray-700 text-primary-400 font-bold rounded-xl border border-gray-700 transition-all active:scale-95"
-              >
-                Clear Search & View All
+              <button onClick={() => setSearch('')} className="btn-secondary py-2 px-5 text-sm">
+                Clear Search
               </button>
             )}
           </div>
         )}
       </div>
-      {/* User Deletion Modal */}
+
+      {/* Delete Modal */}
       {deleteConfirm.show && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-gray-800 w-full max-w-sm rounded-[24px] p-8 border border-gray-700 shadow-2xl scale-in-center overflow-hidden relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500/50"></div>
-            <div className="flex flex-col items-center text-center gap-6">
-              <div className="w-16 h-16 rounded-3xl bg-amber-900/30 flex items-center justify-center border-2 border-amber-500/20">
-                <AlertTriangle className="w-8 h-8 text-amber-500" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-white mb-2">Delete Account?</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  This user will lose all access to the system. This cannot be undone.
-                </p>
-              </div>
-              <div className="flex gap-3 w-full mt-2">
-                <button 
-                  onClick={() => setDeleteConfirm({ show: false, id: null })}
-                  className="flex-1 px-6 py-3.5 bg-gray-900 hover:bg-gray-700 text-gray-300 font-bold rounded-2xl transition-all border border-gray-700 active:scale-95"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={confirmDelete}
-                  className="flex-1 px-6 py-3.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-2xl shadow-lg shadow-amber-900/20 transition-all active:scale-95"
-                >
-                  Permanently Delete
-                </button>
-              </div>
+        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="card-sm w-full max-w-sm p-8 animate-scale-in text-center">
+            <div className="w-14 h-14 bg-[#926015]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-[#926015]/20">
+              <AlertTriangle className="w-7 h-7 text-[#926015]" />
+            </div>
+            <h3 className="text-xl font-black text-ink mb-2">Delete Account?</h3>
+            <p className="text-ink-muted text-sm mb-7">This user will permanently lose all system access. This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm({ show: false, id: null })} className="btn-secondary flex-1 py-3">Cancel</button>
+              <button onClick={confirmDelete} className="btn-danger flex-1 py-3">Delete</button>
             </div>
           </div>
         </div>
